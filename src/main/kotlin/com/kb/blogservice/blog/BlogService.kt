@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitExchange
+import org.springframework.web.reactive.function.client.createExceptionAndAwait
 
 @Service
 class BlogService(
@@ -84,8 +85,10 @@ class BlogService(
             .awaitExchange { clientResponse ->
                 if (clientResponse.statusCode() == HttpStatus.OK) {
                     clientResponse.awaitBody()
-                } else {
+                } else if (clientResponse.statusCode().is4xxClientError || clientResponse.statusCode().is5xxServerError) {
                     getNaverBlogData(criteria).toKakaoBlogResponse()
+                } else {
+                    throw clientResponse.createExceptionAndAwait()
                 }
             }
     }
@@ -106,7 +109,12 @@ class BlogService(
             }
             .header("X-Naver-Client-Id", apiProperties.clientId)
             .header("X-Naver-Client-Secret", apiProperties.clientSecret)
-            .retrieve()
-            .awaitBody()
+            .awaitExchange { clientResponse ->
+                if (clientResponse.statusCode() == HttpStatus.OK) {
+                    clientResponse.awaitBody()
+                } else {
+                    throw clientResponse.createExceptionAndAwait()
+                }
+            }
     }
 }
