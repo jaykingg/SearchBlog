@@ -1,7 +1,12 @@
 # 카카오 블로그 검색 API
 
-### File
+### Developer
 
+- Email : js.wise10@kakao.com
+
+### Info
+
+- Project Link : https://github.com/jaykingg/SearchBlog
 - Project jar File Link : https://drive.google.com/file/d/1jNryi2TaQ4xlIWyT5eDyzCMXuo34oAys/view?usp=share_link
 
 ### Skills
