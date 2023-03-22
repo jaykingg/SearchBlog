@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitExchange
@@ -29,7 +30,9 @@ class BlogService(
 
         val blogData = getKakaoBlogData(criteria)
         return BlogView(
-            populars = blogKeywordRepository.findTop10ByOrderByCountDesc(),
+            populars = withContext(Dispatchers.IO) {
+                blogKeywordRepository.findTop10ByOrderByCountDesc()
+            },
             items = blogData.documents,
             page = blogData.meta
         )
@@ -40,7 +43,8 @@ class BlogService(
         return if (querySplit.size > 1) querySplit[1] else querySplit[0]
     }
 
-    private suspend fun updateKeyword(blogKeyword: BlogKeyword) {
+    @Transactional
+    suspend fun updateKeyword(blogKeyword: BlogKeyword) {
         withContext(Dispatchers.IO) {
             blogKeywordRepository.save(
                 blogKeyword.copy(
@@ -50,7 +54,8 @@ class BlogService(
         }
     }
 
-    private suspend fun saveKeyword(keyword: String) {
+    @Transactional
+    suspend fun saveKeyword(keyword: String) {
         withContext(Dispatchers.IO) {
             blogKeywordRepository.save(
                 BlogKeyword(
@@ -63,7 +68,7 @@ class BlogService(
 
     private suspend fun getKakaoBlogData(criteria: BlogCriteria): KakaoBlogResponse {
         return WebClient.builder()
-            .baseUrl("https://dapi.kakao.com/v2/search/blog1")
+            .baseUrl(apiProperties.kakaoBaseUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build()
             .get()
@@ -87,7 +92,7 @@ class BlogService(
 
     private suspend fun getNaverBlogData(criteria: BlogCriteria): NaverBlogResponse {
         return WebClient.builder()
-            .baseUrl("https://openapi.naver.com/v1/search/blog.json")
+            .baseUrl(apiProperties.naverBaseUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build()
             .get()

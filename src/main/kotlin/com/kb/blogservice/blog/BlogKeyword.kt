@@ -1,7 +1,7 @@
 package com.kb.blogservice.blog
 
-import jakarta.persistence.*
 import org.hibernate.validator.constraints.UniqueElements
+import javax.persistence.*
 
 @Entity
 @Table(name = "blog_keywords")

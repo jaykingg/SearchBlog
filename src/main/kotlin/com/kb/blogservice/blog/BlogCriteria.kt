@@ -1,6 +1,6 @@
 package com.kb.blogservice.blog
 
-import jakarta.validation.constraints.NotBlank
+import javax.validation.constraints.NotBlank
 
 data class BlogCriteria(
     @field: NotBlank
